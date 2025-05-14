@@ -10,13 +10,17 @@ import com.Proton.JavaSpring.repository.BalanceRepository;
 import com.Proton.JavaSpring.repository.CardRepository;
 import com.Proton.JavaSpring.service.AccountService;
 import com.Proton.JavaSpring.service.RedisService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
@@ -27,18 +31,8 @@ public class AccountServiceImpl implements AccountService {
     private static final Duration ACCOUNT_CACHE_DURATION = Duration.ofMinutes(10);
     private static final String ACCOUNT_KEY_PREFIX = "account:";
 
-    @Autowired
-    public AccountServiceImpl(AccountRepository accountRepository,
-                              CardRepository cardRepository,
-                              BalanceRepository balanceRepository,
-                              RedisService<Account> redisService) {
-        this.accountRepository = accountRepository;
-        this.cardRepository = cardRepository;
-        this.balanceRepository = balanceRepository;
-        this.redisService = redisService;
-    }
-
     @Override
+    @CachePut(value = ACCOUNT_KEY_PREFIX, key = "#result.accountId")
     public Account createAccount(CreateAccountDTO account) {
         if (accountRepository.findByEmail(account.getEmail()) != null) {
             throw new RuntimeException("Account already exists");
@@ -48,14 +42,13 @@ public class AccountServiceImpl implements AccountService {
         acc.setEmail(account.getEmail());
         acc.setPhoneNumber(account.getPhoneNumber());
 
-        Account saved = accountRepository.save(acc);
+        //        redisService.save(ACCOUNT_KEY_PREFIX, saved.getAccountId(), saved, ACCOUNT_CACHE_DURATION);
 
-        redisService.save(ACCOUNT_KEY_PREFIX, saved.getAccountId(), saved, ACCOUNT_CACHE_DURATION);
-
-        return saved;
+        return accountRepository.save(acc);
     }
 
     @Override
+    @CachePut(value = ACCOUNT_KEY_PREFIX, key = "#result.accountId")
     public Account updateAccount(UpdateAccountDTO req) {
         Account acc = accountRepository.findById(req.getId())
                 .orElseThrow(() -> new RuntimeException("Account not found"));
@@ -67,14 +60,13 @@ public class AccountServiceImpl implements AccountService {
             acc.setPhoneNumber(req.getPhoneNumber());
         }
 
-        Account updated = accountRepository.save(acc);
+        //        redisService.save(ACCOUNT_KEY_PREFIX,updated.getAccountId(), updated, ACCOUNT_CACHE_DURATION);
 
-        redisService.save(ACCOUNT_KEY_PREFIX,updated.getAccountId(), updated, ACCOUNT_CACHE_DURATION);
-
-        return updated;
+        return accountRepository.save(acc);
     }
 
     @Override
+    @CacheEvict(value = ACCOUNT_KEY_PREFIX, key = "#accountId")
     public void deleteAccount(Long accountId) {
         List<Card> cards = cardRepository.findByAccount_AccountId(accountId);
         Balance balance = balanceRepository.findByAccount_AccountId(accountId);
@@ -88,12 +80,11 @@ public class AccountServiceImpl implements AccountService {
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
         accountRepository.deleteById(accountId);
-
-
-        redisService.delete(ACCOUNT_KEY_PREFIX,accountId);
+//        redisService.delete(ACCOUNT_KEY_PREFIX,accountId);
     }
 
     @Override
+    @Cacheable(value = ACCOUNT_KEY_PREFIX, key = "#id")
     public Account getAccount(Long id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
@@ -103,7 +94,7 @@ public class AccountServiceImpl implements AccountService {
             return cached;
         }
 
-        redisService.save(ACCOUNT_KEY_PREFIX,account.getAccountId(),account, ACCOUNT_CACHE_DURATION);
+//        redisService.save(ACCOUNT_KEY_PREFIX,account.getAccountId(),account, ACCOUNT_CACHE_DURATION);
         return account;
     }
 }
