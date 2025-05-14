@@ -22,15 +22,16 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final CardRepository cardRepository;
     private final BalanceRepository balanceRepository;
-    private final RedisService redisService;
+    private final RedisService<Account> redisService;
 
-    private static final Duration ACCOUNT_CACHE_DURATION = Duration.ofHours(1); // TTL cho Redis
+    private static final Duration ACCOUNT_CACHE_DURATION = Duration.ofHours(1);
+    private static final String ACCOUNT_KEY_PREFIX = "account:";
 
     @Autowired
     public AccountServiceImpl(AccountRepository accountRepository,
                               CardRepository cardRepository,
                               BalanceRepository balanceRepository,
-                              RedisService redisService) {
+                              RedisService<Account> redisService) {
         this.accountRepository = accountRepository;
         this.cardRepository = cardRepository;
         this.balanceRepository = balanceRepository;
@@ -49,7 +50,7 @@ public class AccountServiceImpl implements AccountService {
 
         Account saved = accountRepository.save(acc);
 
-        redisService.saveAccount(saved, ACCOUNT_CACHE_DURATION);
+        redisService.save(ACCOUNT_KEY_PREFIX, saved.getAccountId(), saved, ACCOUNT_CACHE_DURATION);
 
         return saved;
     }
@@ -68,8 +69,7 @@ public class AccountServiceImpl implements AccountService {
 
         Account updated = accountRepository.save(acc);
 
-        // Cập nhật lại cache
-        redisService.saveAccount(updated, ACCOUNT_CACHE_DURATION);
+        redisService.save(ACCOUNT_KEY_PREFIX,updated.getAccountId(), updated, ACCOUNT_CACHE_DURATION);
 
         return updated;
     }
@@ -89,23 +89,21 @@ public class AccountServiceImpl implements AccountService {
 
         accountRepository.deleteById(accountId);
 
-        // Xóa cache
-        redisService.deleteAccount(accountId);
+
+        redisService.delete(ACCOUNT_KEY_PREFIX,accountId);
     }
 
     @Override
     public Account getAccount(Long id) {
-        // Kiểm tra trong Redis
-        Account cached = redisService.getAccount(id);
+        Account account = accountRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        Account cached = redisService.get(ACCOUNT_KEY_PREFIX, id, Account.class);
         if (cached != null) {
             return cached;
         }
 
-        // Nếu không có, lấy từ DB và lưu vào cache
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
-
-        redisService.saveAccount(account, ACCOUNT_CACHE_DURATION);
+        redisService.save(ACCOUNT_KEY_PREFIX,account.getAccountId(),account, ACCOUNT_CACHE_DURATION);
         return account;
     }
 }

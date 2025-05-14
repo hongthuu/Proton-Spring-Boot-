@@ -14,44 +14,70 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RedisService{
+public class RedisService<T>{
 
-    private static final String ACCOUNT_KEY_PREFIX = "account:";
+//    private static final String ACCOUNT_KEY_PREFIX = "account:";
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper redisObjectMapper;
 
-
-
-    public void saveAccount(Account account, Duration duration) {
-        String key = ACCOUNT_KEY_PREFIX + account.getAccountId();
-        log.info("Saving account to Redis with key: {}", key);
-        redisTemplate.opsForValue().set(key, account, duration);
+    public void save(String keyPrefix, Long id, T data, Duration duration) {
+        String key = keyPrefix + id;
+        log.info("Saving data to Redis with key: {}", key);
+        redisTemplate.opsForValue().set(key, data, duration);
     }
 
-    public Account getAccount(Long id) {
-        String key = ACCOUNT_KEY_PREFIX + id;
-        log.info("Fetching account from Redis with key: {}", key);
+    public T get(String keyPrefix, Long id, Class<T> clazz) {
+        String key = keyPrefix + id;
+        log.info("Fetching data from Redis with key: {}", key);
         Object value = redisTemplate.opsForValue().get(key);
 
         if (value != null) {
-            log.info("Account found in Redis cache");
-            return (Account) value;
+            log.info("Data found in Redis cache");
+            // You can return directly if you ensure type-safe serialization
+            return clazz.cast(value);
         }
 
-        log.info("Account not found in Redis cache");
+        log.info("Data not found in Redis cache");
         return null;
     }
 
-    public void deleteAccount(Long id) {
-        String key = ACCOUNT_KEY_PREFIX + id;
-        log.info("Deleting account from Redis with key: {}", key);
+    public void delete(String keyPrefix, Long id) {
+        String key = keyPrefix + id;
+        log.info("Deleting data from Redis with key: {}", key);
         redisTemplate.delete(key);
     }
+
+//    public void saveAccount(Account account, Duration duration) {
+//        String key = ACCOUNT_KEY_PREFIX + account.getAccountId();
+//        log.info("Saving account to Redis with key: {}", key);
+//        redisTemplate.opsForValue().set(key, account, duration);
+//    }
+//
+//    public Account getAccount(Long id) {
+//        String key = ACCOUNT_KEY_PREFIX + id;
+//        log.info("Fetching account from Redis with key: {}", key);
+//        Object value = redisTemplate.opsForValue().get(key);
+//
+//        if (value != null) {
+//            log.info("Account found in Redis cache");
+//            return (Account) value;
+//        }
+//
+//        log.info("Account not found in Redis cache");
+//        return null;
+//    }
+//
+//    public void deleteAccount(Long id) {
+//        String key = ACCOUNT_KEY_PREFIX + id;
+//        log.info("Deleting account from Redis with key: {}", key);
+//        redisTemplate.delete(key);
+//    }
 
 
 
@@ -85,7 +111,7 @@ public class RedisService{
     }
 
     public void clear() {
-        redisTemplate.getConnectionFactory().getConnection().flushAll();
+        Objects.requireNonNull(redisTemplate.getConnectionFactory()).getConnection().flushAll();
     }
 
     public void saveAllProducts(List<Account> productResponses,
