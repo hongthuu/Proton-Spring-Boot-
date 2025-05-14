@@ -24,7 +24,7 @@ public class AccountServiceImpl implements AccountService {
     private final BalanceRepository balanceRepository;
     private final RedisService<Account> redisService;
 
-    private static final Duration ACCOUNT_CACHE_DURATION = Duration.ofHours(1);
+    private static final Duration ACCOUNT_CACHE_DURATION = Duration.ofMinutes(10);
     private static final String ACCOUNT_KEY_PREFIX = "account:";
 
     @Autowired

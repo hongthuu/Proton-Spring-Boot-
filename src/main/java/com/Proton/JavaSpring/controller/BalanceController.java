@@ -19,8 +19,8 @@ public class BalanceController {
     private BalanceServiceImpl balanceServiceImpl;
 
     @GetMapping("/getBalance/{accId}")
-    public ResponseEntity<List<Balance>> getbalance(@PathVariable Long accId) {
-        return ResponseEntity.ok(balanceServiceImpl.getBalanceByAccountId(accId));
+    public ResponseEntity<Balance> getbalance(@PathVariable Long accId) {
+        return ResponseEntity.ok(balanceServiceImpl.getBalance(accId));
     }
 
     @PostMapping("/addBalance/{accId}")
