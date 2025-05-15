@@ -3,7 +3,7 @@ package com.Proton.JavaSpring.config;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,8 +27,10 @@ import java.time.format.DateTimeFormatter;
 @EnableCaching
 public class RedisConfig {
 
+    @Value("${spring.data.redis.host}")
     private String redisHost;
 
+    @Value("${spring.data.redis.port}")
     private int redisPort;
 
 

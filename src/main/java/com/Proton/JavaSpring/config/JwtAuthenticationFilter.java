@@ -14,15 +14,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-@Slf4j
+//@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final String SIGNER_KEY;
 
     public JwtAuthenticationFilter(String signerKey) {
@@ -38,7 +36,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             log.info("Processing request: {}", request.getRequestURI());
 
-            // Check if this is an allowed endpoint, bypass filter
             String requestURI = request.getRequestURI();
             if (requestURI.equals("/token") ||
                     requestURI.equals("/login") ||
@@ -61,7 +58,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 SignedJWT signedJWT = SignedJWT.parse(token);
 
-                // Log the claims for debugging
                 JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
                 log.info("JWT Claims: {}", claims.getClaims());
 
@@ -72,7 +68,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.info("Token verification: {}, Expired: {}", verified, expiry != null && expiry.before(now));
 
                 if (verified && (expiry == null || expiry.after(now))) {
-                    // Try different claim names that might be used for account ID
                     Long accountId = null;
 
                     if (claims.getClaims().containsKey("account_id")) {
@@ -80,7 +75,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     } else if (claims.getClaims().containsKey("accountId")) {
                         accountId = claims.getLongClaim("accountId");
                     } else if (claims.getClaims().containsKey("sub")) {
-                        // Try parsing subject as account ID
                         try {
                             accountId = Long.parseLong(claims.getSubject());
                         } catch (NumberFormatException e) {
@@ -91,10 +85,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     log.info("Extracted accountId from JWT: {}", accountId);
 
                     if (accountId != null) {
-                        // Set accountId into request attribute
                         request.setAttribute("account_id", accountId);
 
-                        // Create authentication object and set in SecurityContextHolder
                         List<SimpleGrantedAuthority> authorities = Collections.singletonList(
                                 new SimpleGrantedAuthority("ROLE_USER"));
 

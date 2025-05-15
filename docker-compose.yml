@@ -1,22 +1,6 @@
 version: '3.9'
 
 services:
-  postgres:
-    image: postgres
-    container_name: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      PGDATA: /data/postgres
-    volumes:
-      - postgres:/data/postgres
-      - ./initdb.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - '5432:5432'
-    networks:
-      - backend
-
   redis:
     image: redis:6.2-alpine
     container_name: redis
@@ -29,16 +13,17 @@ services:
     networks:
       - backend
 
-
-  api-service:
-    container_name: api-service
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-docker
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bankproton
     ports:
-      - '80:7749'
+      - '3307:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
     networks:
       - backend
 
@@ -47,4 +32,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres:
+  mysql_data:

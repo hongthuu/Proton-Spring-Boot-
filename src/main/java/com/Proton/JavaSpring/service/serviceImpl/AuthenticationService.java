@@ -6,6 +6,7 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import lombok.Data;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,9 @@ import java.util.Date;
 import java.util.UUID;
 
 @Service
+@Data
 public class AuthenticationService {
 
-    @Getter
     @Value("${jwt.signer.key:eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJwcm90b24iLCJzdWIiOiIxMjMiLCJhY2NvdW50X2lkIjoxMjMsImV4cCI6MTc0NzEzMTI1OSwiaWF0IjoxNzQ3MTI3NjU5LCJqdGkiOiJhOWQyMWE1YS00NTNlLTQ4YzMtODE4ZC0yOGIzZjdhMjBmMDEifQ.yQTsqpH6m_jEiPRI-D9ubittSb4-EEfickKjsRoTSdE}")
     private String SIGNER_KEY;
 
@@ -26,10 +27,8 @@ public class AuthenticationService {
 
     public String generateToken(Long accountId) {
         try {
-            // Create JWT signer
             JWSSigner signer = new MACSigner(SIGNER_KEY.getBytes());
 
-            // Set up JWT claims
             JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
                     .subject(accountId.toString()) // Setting subject as account ID string
                     .issuer("proton")
@@ -39,15 +38,12 @@ public class AuthenticationService {
                     .issueTime(new Date())
                     .build();
 
-            // Create signed JWT
             SignedJWT signedJWT = new SignedJWT(
                     new JWSHeader.Builder(JWSAlgorithm.HS256).build(),
                     claimsSet);
 
-            // Sign the JWT
             signedJWT.sign(signer);
 
-            // Return the JWT as a string
             return signedJWT.serialize();
         } catch (Exception e) {
             throw new RuntimeException("Error generating JWT token", e);
