@@ -1,19 +1,32 @@
 package com.Proton.JavaSpring.controller;
 
+import com.Proton.JavaSpring.dto.request.accountDTO.AccountDTO;
 import com.Proton.JavaSpring.dto.request.accountDTO.CreateAccountDTO;
 import com.Proton.JavaSpring.dto.request.accountDTO.UpdateAccountDTO;
 import com.Proton.JavaSpring.entity.Account;
+import com.Proton.JavaSpring.repository.UserRepository;
+import com.Proton.JavaSpring.service.JwtService;
 import com.Proton.JavaSpring.service.serviceImpl.AccountServiceImpl;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+
 @Controller
 public class AccountController {
     @Autowired
     private AccountServiceImpl accountService;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping("/createAccount")
     public ResponseEntity<Account> createAccount(@RequestBody @Valid CreateAccountDTO accountDTO) {
@@ -32,7 +45,16 @@ public class AccountController {
     }
 
     @GetMapping("/getInformation/{id}")
-    public ResponseEntity<Account> getInformation(@PathVariable Long id) {
+    public ResponseEntity<AccountDTO> getInformation(@PathVariable Long id) {
+        accountService.clearCache(id);
         return ResponseEntity.ok(accountService.getAccount(id));
+    }
+
+    @GetMapping("/getDataToken")
+    public ResponseEntity<?> getAccountInfo(HttpServletRequest request) {
+        final String authHeader = request.getHeader(AUTHORIZATION);
+        final String jwt = authHeader.substring(7);
+        final String userName = jwtService.extractUserName(jwt);
+        return ResponseEntity.ok(userRepository.findByUsername(userName));
     }
 }
