@@ -4,17 +4,16 @@ import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreateAccountDTO {
-
-//    @NotBlank(message = "User Name require")
-//    private String userName;
-//
-//    @NotBlank(message = "Password is required")
-//    private String password;
-
     @NotBlank(message = "Customer name is required")
     private String customerName;
 

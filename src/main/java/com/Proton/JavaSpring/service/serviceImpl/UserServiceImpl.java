@@ -20,8 +20,20 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
-
-    public User save(User user) {
-        return userRepository.save(user);
+    @Override
+    public User getByUsername(String userName) {
+        return null;
     }
+
+    @Override
+    public long saveUser(User user) {
+        userRepository.save(user);
+        return user.getUserId();
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email not found"));
+    }
+
 }

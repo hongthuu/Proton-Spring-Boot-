@@ -2,10 +2,7 @@ package com.Proton.JavaSpring.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
@@ -18,6 +15,7 @@ import java.util.List;
 @Slf4j
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Account implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

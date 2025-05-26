@@ -1,7 +1,5 @@
 package com.Proton.JavaSpring.controller;
 
-import com.Proton.JavaSpring.dto.request.accountDTO.CreateAccountDTO;
-import com.Proton.JavaSpring.entity.Account;
 import com.Proton.JavaSpring.entity.User;
 import com.Proton.JavaSpring.repository.AccountRepository;
 import com.Proton.JavaSpring.service.JmsService;

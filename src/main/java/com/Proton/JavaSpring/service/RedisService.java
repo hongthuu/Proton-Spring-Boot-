@@ -19,7 +19,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RedisService<T>{
+public class RedisService<T> {
 
 //    private static final String ACCOUNT_KEY_PREFIX = "account:";
 
@@ -73,10 +73,6 @@ public class RedisService<T>{
 //    }
 
 
-
-
-
-
     private String getKeyFrom(String keyword,
                               Long categoryId,
                               PageRequest pageRequest) {
@@ -84,20 +80,21 @@ public class RedisService<T>{
         int pageSize = pageRequest.getPageSize();
         Sort sort = pageRequest.getSort();
         String sortDirection = sort.getOrderFor("id")
-                              .getDirection() == Sort.Direction.ASC ? "asc" : "desc";
+                .getDirection() == Sort.Direction.ASC ? "asc" : "desc";
         String key = String.format("all_products:%d:%d:%s", pageNumber, pageSize, sortDirection);
         return key;
     }
 
     public List<Account> getAllProducts(String keyword,
-                                                Long categoryId,
-                                                PageRequest pageRequest) throws JsonProcessingException {
+                                        Long categoryId,
+                                        PageRequest pageRequest) throws JsonProcessingException {
         String key = this.getKeyFrom(keyword, categoryId, pageRequest);
         String json = (String) redisTemplate.opsForValue().get(key);
 
         List<Account> productResponses =
                 json != null ?
-                        redisObjectMapper.readValue(json, new TypeReference<List<Account>>() {}) :
+                        redisObjectMapper.readValue(json, new TypeReference<List<Account>>() {
+                        }) :
                         null;
 
         return productResponses;

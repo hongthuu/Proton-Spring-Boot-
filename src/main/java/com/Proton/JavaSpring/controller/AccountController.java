@@ -49,12 +49,4 @@ public class AccountController {
         accountService.clearCache(id);
         return ResponseEntity.ok(accountService.getAccount(id));
     }
-
-    @GetMapping("/getDataToken")
-    public ResponseEntity<?> getAccountInfo(HttpServletRequest request) {
-        final String authHeader = request.getHeader(AUTHORIZATION);
-        final String jwt = authHeader.substring(7);
-        final String userName = jwtService.extractUserName(jwt);
-        return ResponseEntity.ok(userRepository.findByUsername(userName));
-    }
 }
