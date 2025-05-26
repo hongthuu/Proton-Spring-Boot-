@@ -1,5 +1,6 @@
 package com.Proton.JavaSpring.service.serviceImpl;
 
+import com.Proton.JavaSpring.dto.request.BalanceDTO.BalanceRequest;
 import com.Proton.JavaSpring.entity.Account;
 import com.Proton.JavaSpring.entity.Balance;
 import com.Proton.JavaSpring.repository.AccountRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -77,4 +79,36 @@ public class BalanceServiceImpl implements BalanceService {
         balanceRepository.saveAndFlush(balance);
 //        redisService.save(BALANCE_KEY_PREFIX, accId, balance, BALANCE_CACHE_DURATION);
     }
+
+
+    private final ConcurrentHashMap<Long, Double> balances = new ConcurrentHashMap<>();
+
+    public void updateBalance(BalanceRequest request) {
+        Long accountId = request.getAccountId();
+        Double amount = request.getAmount();
+        String type = request.getTransactionType();
+
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        Balance balance = account.getBalance();
+
+        balances.putIfAbsent(accountId, 0.0);
+        Double currentBalance = balance.getAvailableBalance();
+
+        double newBalance = 0.0;
+        if ("ADD".equalsIgnoreCase(type)) {
+            newBalance = currentBalance + amount;
+        } else if ("DEDUCT".equalsIgnoreCase(type)) {
+            if (currentBalance >= amount) {
+                newBalance = currentBalance - amount;
+            } else {
+                throw new IllegalArgumentException("Insufficient balance for account " + accountId);
+            }
+        }
+        balances.put(accountId, newBalance);
+        balance.setAvailableBalance(newBalance);
+
+        balanceRepository.saveAndFlush(balance);
+    }
+
 }

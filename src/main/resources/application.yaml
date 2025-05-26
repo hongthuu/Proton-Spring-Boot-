@@ -33,3 +33,8 @@ jwt:
   secretKey: 95eb8e8ad97cee6d9829f420e93187c2e98808deaa5bd9e5a660a6d8f9d78af9
   refreshKey: 3fd7dcbd130286b3799aa74e7fcb1d2ecc80d4c95a158d91dfa1d6a72557f769
   resetKey: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+
+
+# Queue name
+queue:
+  balance: balance.queue

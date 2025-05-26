@@ -1,14 +1,14 @@
 package com.Proton.JavaSpring.dto.request.BalanceDTO;
 
-public class BalanceRequest {
-        private String newBalance;
+import lombok.Getter;
+import lombok.Setter;
 
-        public String getNewBalance() {
-            return newBalance;
-        }
+import java.io.Serializable;
 
-        public void setNewBalance(String newBalance) {
-            this.newBalance = newBalance;
-        }
-
+@Setter
+@Getter
+public class BalanceRequest implements Serializable {
+    private Long accountId;
+    private Double amount;
+    private String transactionType;
 }
