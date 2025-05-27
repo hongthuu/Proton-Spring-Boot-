@@ -38,3 +38,8 @@ jwt:
 # Queue name
 queue:
   balance: balance.queue
+
+
+
+#docker exec -it my-redis redis-cli
+#keys *
