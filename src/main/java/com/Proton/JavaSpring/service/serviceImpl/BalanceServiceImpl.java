@@ -13,8 +13,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -81,9 +79,11 @@ public class BalanceServiceImpl implements BalanceService {
     }
 
 
-    private final ConcurrentHashMap<Long, Double> balances = new ConcurrentHashMap<>();
+//    private final HashMap<Long, Double> balances = new HashMap<>();
 
-    public void updateBalance(BalanceRequest request) {
+
+    @CachePut(value = "balance", key = "#request.accountId")
+    public Balance updateBalance(BalanceRequest request) {
         Long accountId = request.getAccountId();
         Double amount = request.getAmount();
         String type = request.getTransactionType();
@@ -92,23 +92,28 @@ public class BalanceServiceImpl implements BalanceService {
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         Balance balance = account.getBalance();
 
-        balances.putIfAbsent(accountId, 0.0);
+        if (balance == null) {
+            throw new RuntimeException("Balance not initialized");
+        }
+
         Double currentBalance = balance.getAvailableBalance();
 
-        double newBalance = 0.0;
-        if ("ADD".equalsIgnoreCase(type)) {
-            newBalance = currentBalance + amount;
-        } else if ("DEDUCT".equalsIgnoreCase(type)) {
-            if (currentBalance >= amount) {
-                newBalance = currentBalance - amount;
-            } else {
-                throw new IllegalArgumentException("Insufficient balance for account " + accountId);
+        double newBalance = switch (type.toUpperCase()) {
+            case "ADD" -> currentBalance + amount;
+            case "DEDUCT" -> {
+                if (currentBalance < amount) {
+                    throw new IllegalArgumentException("Insufficient balance for account " + accountId);
+                }
+                yield currentBalance - amount;
             }
-        }
-        balances.put(accountId, newBalance);
-        balance.setAvailableBalance(newBalance);
+            default -> throw new IllegalArgumentException("Invalid transaction type: " + type);
+        };
 
+        balance.setAvailableBalance(newBalance);
         balanceRepository.saveAndFlush(balance);
+
+        return balance;
     }
+
 
 }

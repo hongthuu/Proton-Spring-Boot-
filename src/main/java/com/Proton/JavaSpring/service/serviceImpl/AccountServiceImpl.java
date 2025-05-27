@@ -171,6 +171,8 @@ public class AccountServiceImpl implements AccountService {
         Hibernate.initialize(account.getCards());
         return accountMapper.toDto(account);
     }
+
+
     @CacheEvict(value = "accounts", key = "#id")
     public void clearCache(Long id) {
         // Method để clear cache khi test

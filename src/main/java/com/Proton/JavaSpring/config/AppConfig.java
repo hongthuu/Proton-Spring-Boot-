@@ -39,8 +39,8 @@ public class AppConfig {
             public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins("http://localhost:8080")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE") // Allowed HTTP methods
-                        .allowedHeaders("*") // Allowed request headers
+                        .allowedMethods("GET", "POST", "PUT", "DELETE")
+                        .allowedHeaders("*")
                         .allowCredentials(false)
                         .maxAge(3600);
             }
